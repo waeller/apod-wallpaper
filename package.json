@@ -1,0 +1,20 @@
+{
+  "name": "apod-wallpaper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "semistandard": "^14.2.2"
+  },
+  "dependencies": {
+    "bent": "^7.3.7",
+    "domhandler": "^3.0.0",
+    "htmlparser2": "^4.1.0",
+    "human-readable": "^0.2.1"
+  }
+}
