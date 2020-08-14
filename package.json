@@ -9,10 +9,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "semistandard": "^14.2.2"
+    "semistandard": "^14.2.3"
   },
   "dependencies": {
-    "bent": "^7.3.7",
+    "bent": "^7.3.9",
     "domhandler": "^3.0.0",
     "htmlparser2": "^4.1.0",
     "human-readable": "^0.2.1",
