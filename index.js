@@ -4,6 +4,7 @@ const os = require('os');
 const { mkdir, writeFile } = require('fs').promises;
 const { exec } = require('child_process');
 const { Parser } = require('htmlparser2');
+const wallpaper = require('wallpaper');
 
 const bent = require('bent');
 const apodUrl = 'https://apod.nasa.gov/apod/';
@@ -25,7 +26,7 @@ const formatDuration = durationFormatter({
 
 async function main (mode) {
   let imagePath;
-  if (mode === 'random') {
+  if (mode === 'random' || mode === 'r') {
     imagePath = await getRandomApodImagePath();
   } else {
     console.info('Looking for today\'s image ...');
@@ -131,8 +132,9 @@ function findImagePath (html) {
 
 async function saveImage (imagePath) {
   const format = path.extname(imagePath);
-  const imageDir = `${process.env.HOME}/Bilder/APOD`;
-  const imageFile = `${imageDir}/wallpaper${format}`;
+  const imageDir = 'download';
+  const today = new Date().toISOString().substring(0, 10);
+  const imageFile = path.join(imageDir, `apod-${today}${format}`);
   console.info(`Writing ${imagePath} to ${imageFile} ...`);
   await mkdir(imageDir, { recursive: true });
   const time = Date.now();
@@ -145,14 +147,7 @@ async function saveImage (imagePath) {
 
 async function setWallpaper (imageFile) {
   console.info(`Setting ${imageFile} as wallpaper ...`);
-  switch (os.type()) {
-    case 'Linux':
-      exec(`gsettings set org.gnome.desktop.background picture-uri file://${imageFile}`);
-      break;
-    case 'Windows_NT':
-      console.info('TODO');
-      break;
-  }
+  return wallpaper.set(imageFile);
 }
 
 main(process.argv[2])
