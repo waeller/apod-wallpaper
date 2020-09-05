@@ -1,8 +1,6 @@
 
 const path = require('path');
-const os = require('os');
 const { mkdir, writeFile } = require('fs').promises;
-const { exec } = require('child_process');
 const { Parser } = require('htmlparser2');
 const wallpaper = require('wallpaper');
 
