@@ -23,20 +23,35 @@ const formatDuration = durationFormatter({
 });
 
 async function main (mode) {
+  let date;
   let imagePath;
   if (mode === 'random' || mode === 'r') {
-    imagePath = await getRandomApodImagePath();
+    ({ imagePath, date } = await getRandomApodImagePathAndDate());
+  } else if (mode === 'yesterday' || mode === 'y') {
+    console.info('Looking for yesterday\'s image ...');
+    date = getDateDaysAgo(1);
+    imagePath = await getImagePathForDate(date);
   } else {
     console.info('Looking for today\'s image ...');
     imagePath = await getImagePathFromPage(apodToday);
   }
   if (isImagePath(imagePath)) {
-    const imageFile = await saveImage(imagePath);
+    const imageFile = await saveImage(imagePath, date);
     await setWallpaper(imageFile);
     console.info('Done');
   } else {
     console.info('No image found.');
   }
+}
+
+async function getRandomApodImagePathAndDate () {
+  let randomDate;
+  let imagePath;
+  do {
+    randomDate = getRandomApodDate();
+    imagePath = await getImagePathForDate(randomDate);
+  } while (!isImagePath(imagePath));
+  return { imagePath, date: randomDate };
 }
 
 async function getImagePathFromPage (path) {
@@ -45,13 +60,13 @@ async function getImagePathFromPage (path) {
   return findImagePath(html);
 }
 
-async function getRandomApodImagePath () {
-  let imagePath;
-  do {
-    const pagePath = getRandomApodPath();
-    imagePath = await getImagePathFromPage(pagePath);
-  } while (!isImagePath(imagePath));
-  return imagePath;
+async function getImagePathForDate (date) {
+  const pagePath = getPageNameForDate(date);
+  return await getImagePathFromPage(pagePath);
+}
+
+function getDateDaysAgo (days) {
+  return new Date(Date.now() - days * 24 * 3600 * 1000);
 }
 
 function isImagePath (somePath) {
@@ -62,7 +77,7 @@ function isImagePath (somePath) {
   return false;
 }
 
-function getRandomApodPath () {
+function getRandomApodDate () {
   // adapted from script in https://apod.nasa.gov/apod/random_apod.html
 
   /// //////////////////////////////////////////////////
@@ -93,14 +108,16 @@ function getRandomApodPath () {
   while (randomTime >= missingMin && randomTime <= missingMax) {
     randomTime = Math.round(min + (Math.random() * (max - min)));
   }
-
   // convert the timestamp back into a date object
-  const randomDate = new Date(randomTime);
-  const randomYear = randomDate.getFullYear().toString().slice(-2); // in the year 2095 we're gonna have problems
-  const randomMonth = (0 + (randomDate.getMonth() + 1).toString()).slice(-2); // zero pad the month
-  const randomDay = (0 + (randomDate.getDate().toString())).slice(-2); // zero pad the day
+  return new Date(randomTime);
+}
 
-  return `ap${randomYear}${randomMonth}${randomDay}.html`;
+function getPageNameForDate (date) {
+  // in the year 2095 we're gonna have problems
+  const year = date.getFullYear().toString().slice(-2);
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, '0');
+  return `ap${year}${month}${day}.html`;
 }
 
 function findImagePath (html) {
@@ -128,10 +145,10 @@ function findImagePath (html) {
   });
 }
 
-async function saveImage (imagePath) {
+async function saveImage (imagePath, dateForName = new Date()) {
   const format = path.extname(imagePath);
   const imageDir = 'download';
-  const today = new Date().toISOString().substring(0, 10);
+  const today = dateForName.toISOString().substring(0, 10);
   const imageFile = path.join(imageDir, `apod-${today}${format}`);
   console.info(`Writing ${imagePath} to ${imageFile} ...`);
   await mkdir(imageDir, { recursive: true });
