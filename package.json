@@ -9,13 +9,13 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "semistandard": "^14.2.3"
+    "semistandard": "^16.0.1"
   },
   "dependencies": {
     "bent": "^7.3.9",
-    "domhandler": "^3.0.0",
-    "htmlparser2": "^4.1.0",
+    "domhandler": "^4.2.2",
+    "htmlparser2": "^7.1.2",
     "human-readable": "^0.2.1",
-    "wallpaper": "^4.4.1"
+    "wallpaper": "^5.0.1"
   }
 }
