@@ -1,21 +1,34 @@
 {
   "name": "apod-wallpaper",
-  "version": "1.0.0",
-  "description": "",
+  "version": "2.0.0",
+  "description": "Fetches image from APOD (https://apod.nasa.gov/apod/) and sets it as desktop wallpaper",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "test": "xo",
+    "format": "xo --fix"
   },
-  "author": "",
-  "license": "ISC",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "files": [
+    "index.js"
+  ],
+  "author": {
+    "name": "Jürgen Schumacher",
+    "email": "waeller@gmail.com",
+    "url": "https://github.com/waeller"
+  },
+  "license": "MIT",
   "devDependencies": {
-    "semistandard": "^16.0.1"
+    "xo": "^0.48.0"
   },
   "dependencies": {
-    "bent": "^7.3.9",
-    "domhandler": "^4.2.2",
-    "htmlparser2": "^7.1.2",
+    "bent": "^7.3.12",
+    "domhandler": "^5.0.2",
+    "htmlparser2": "^8.0.0",
     "human-readable": "^0.2.1",
-    "wallpaper": "^5.0.1"
+    "wallpaper": "github:waeller/wallpaper"
   }
 }
