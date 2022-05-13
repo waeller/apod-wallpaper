@@ -1,18 +1,28 @@
 import {extname, join} from 'node:path';
-import {mkdir, writeFile} from 'node:fs/promises';
+import {mkdir, stat} from 'node:fs/promises';
+import {createWriteStream} from 'node:fs';
 import {argv} from 'node:process';
+import {promisify} from 'node:util';
+import stream from 'node:stream';
 
 import {Parser} from 'htmlparser2';
 import {setWallpaper} from 'wallpaper';
-
-import bent from 'bent';
-
 import {sizeFormatter, durationFormatter} from 'human-readable';
+
+import got from 'got';
+
+const DEBUG = false;
+const pipeline = promisify(stream.pipeline);
 
 const apodUrl = 'https://apod.nasa.gov/apod/';
 const apodToday = 'astropix.html';
-const getApodAsString = bent(apodUrl, 'GET', 'string', 200);
-const getApodAsBuffer = bent(apodUrl, 'GET', 'buffer', 200);
+
+const apod = got.extend({
+	prefixUrl: apodUrl,
+	responseType: 'text',
+	resolveBodyOnly: true,
+});
+
 const formatBytes = sizeFormatter({
 	std: 'JEDEC',
 	decimalPlaces: 2,
@@ -65,7 +75,7 @@ async function getRandomApodImagePathAndDate() {
 
 async function getImagePathFromPage(path) {
 	console.info(`Getting ${apodUrl}${path} ...`);
-	const html = await getApodAsString(path);
+	const html = await apod.get(path);
 	return findImagePath(html);
 }
 
@@ -163,14 +173,25 @@ async function saveImage(imagePath, dateForName = new Date()) {
 	const imageDir = 'download';
 	const today = dateForName.toISOString().slice(0, 10);
 	const imageFile = join(imageDir, `apod-${today}${format}`);
-	console.info(`Writing ${imagePath} to ${imageFile} ...`);
 	await mkdir(imageDir, {recursive: true});
-	const time = Date.now();
-	const imageContent = await getApodAsBuffer(imagePath);
-	await writeFile(imageFile, imageContent);
-	const duration = Date.now() - time;
-	console.info(`Downloaded ${formatBytes(imageContent.length)} in ${formatDuration(duration)}.`);
+	await downloadImageFile(imagePath, imageFile);
 	return imageFile;
+}
+
+async function downloadImageFile(imagePath, imageFile) {
+	console.info(`Writing ${imagePath} to ${imageFile} ...`);
+	const time = Date.now();
+	const downloadStream = apod.stream(imagePath);
+	if (DEBUG) {
+		downloadStream.on('downloadProgress', progress => {
+			console.log(progress);
+		});
+	}
+
+	await pipeline(downloadStream, createWriteStream(imageFile));
+	const duration = Date.now() - time;
+	const imageFileStat = await stat(imageFile);
+	console.info(`Downloaded ${formatBytes(imageFileStat.size)} in ${formatDuration(duration)}.`);
 }
 
 async function setImageAsWallpaper(imageFile) {
